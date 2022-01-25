@@ -15,6 +15,8 @@ There are three LUTs - sin, cos, colorburst / sin(wt+180)
 
 Chroma out requires a capacitor to lower the DC offset back to 0. (Currently testing with 1uF)
 
+All source is written in the frameworks vga_out.sv
+
 
 # [Nintendo Entertainment System](https://en.wikipedia.org/wiki/Nintendo_Entertainment_System) for [MiSTer Platform](https://github.com/MiSTer-devel/Main_MiSTer/wiki)
 
