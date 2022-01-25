@@ -13,7 +13,7 @@ C = U * Sin(wt) + V * Cos(wt) ( where w = 2*PI()*(3.579545*10^6), and t is sampl
 
 There are three LUTs - sin, cos, colorburst / sin(wt+180) 
 
-Chroma out requires a 1uF capacitor to lower the DC offset back to 0.
+Chroma out requires a capacitor to lower the DC offset back to 0. (Currently testing with 1uF)
 
 
 # [Nintendo Entertainment System](https://en.wikipedia.org/wiki/Nintendo_Entertainment_System) for [MiSTer Platform](https://github.com/MiSTer-devel/Main_MiSTer/wiki)
