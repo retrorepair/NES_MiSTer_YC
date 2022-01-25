@@ -1,3 +1,19 @@
+# S-Video / Composite Output - MiSTer FPGA 
+This is an attempt to add chroma out to the MiSTerFPGA using the (Red) output for the Chroma output and (Green) for the Luma
+
+The YUV standard was used with the following assumptions
+
+Y	0.299R' + 0.587G' + 0.114B'
+U	0.492(B' - Y) = 504 (X 1024)
+V	0.877(R' - Y) = 898 (X 1024)
+
+C = U * Sin(wt) + V * Cos(wt) ( where w = 2*PI()*(3.579545*10^6), and t is sampled at 50mhz) 
+
+There are three LUTs - sin, cos, colorburst / sin(wt+180) 
+
+Chroma out requires a 1uF capacitor to lower the DC offset back to 0.
+
+
 # [Nintendo Entertainment System](https://en.wikipedia.org/wiki/Nintendo_Entertainment_System) for [MiSTer Platform](https://github.com/MiSTer-devel/Main_MiSTer/wiki)
 
 This is an FPGA implementation of the NES/Famicom based on [FPGANES](https://github.com/strigeus/fpganes) by Ludvig Strigeus and ported to MiSTer.
