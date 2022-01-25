@@ -4,7 +4,9 @@ This is an attempt to add chroma out to the MiSTerFPGA using the (Red) output fo
 The YUV standard was used with the following assumptions
 
 Y	0.299R' + 0.587G' + 0.114B'
+
 U	0.492(B' - Y) = 504 (X 1024)
+
 V	0.877(R' - Y) = 898 (X 1024)
 
 C = U * Sin(wt) + V * Cos(wt) ( where w = 2*PI()*(3.579545*10^6), and t is sampled at 50mhz) 
