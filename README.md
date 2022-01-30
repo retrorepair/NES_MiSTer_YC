@@ -1,19 +1,27 @@
-# S-Video / Composite Output - MiSTer FPGA 
+# MiSTerFPGA - NTSC Encoder - S-Video / Composite Output 
 This is an attempt to add chroma out to the MiSTerFPGA using the (Red) output for the Chroma output and (Green) for the Luma
 
 The YUV standard was used with the following assumptions
 
-Y	0.299R' + 0.587G' + 0.114B'
+  Y	0.299R' + 0.587G' + 0.114B'
 
-U	0.492(B' - Y) = 504 (X 1024)
+  U	0.492(B' - Y) 
 
-V	0.877(R' - Y) = 898 (X 1024)
+  V	0.877(R' - Y)  
 
-C = U * Sin(wt) + V * Cos(wt) ( where w = 2*PI()*(3.579545*10^6), and t is sampled at 50mhz) 
+  C = U * Sin(wt) + V * Cos(wt) 
 
-There are three LUTs - sin, cos, colorburst / sin(wt+180) 
+There are three LUTs - sin, cos, colorburst / sin(wt ~180) 
 
-Chroma out requires a capacitor to lower the DC offset back to 0. (Currently testing with 1uF)
+  Sampling rate = 14 * 3.579545 or 50,113,560 Hz
+  w = =2 * PI * (3.579545*10^6)
+  t = 1/sampling rate
+
+
+YPbPr is requred in the MiSTer ini file
+A AC coupling 0.1uF capacitor was used on the Chroma output, but may not be required.
+
+This is only a concept right now and there is still a lot of work to see how well this can be applied to more applications or even how the existing issues can be cleaned up.
 
 All source is written in the frameworks vga_out.sv
 
