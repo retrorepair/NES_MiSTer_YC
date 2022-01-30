@@ -17,7 +17,7 @@ The YUV standard was used with the following assumptions
 
 ### Reference Lookup Tables
 
-There are three LUTs - sin, cos, colorburst / sin(wt ~180) 
+There are two LUTs for sin(wt) and cos(wt). The colorburst carrier is just -1 * sin(wt).
 
   Sampling rate = 14 * 3.579545 or 50,113,560 Hz
   w = =2 * PI * (3.579545*10^6)
