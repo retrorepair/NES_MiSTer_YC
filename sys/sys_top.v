@@ -1307,10 +1307,11 @@ csync csync_vga(clk_vid, vga_hs_osd, vga_vs_osd, vga_cs_osd);
 
 	wire [23:0] vga_o;
 	wire vga_hs, vga_vs, vga_cs;
+	wire clk_chroma;
 	vga_out vga_out
 	(
 		.clk(clk_vid),
-		.clk50(FPGA_CLK1_50), // Added to generate NTSC signal
+		.clk_50(clk_chroma), // Added to generate NTSC signal
 		.ypbpr_en(ypbpr_en), 
 		.hsync(vga_hs_osd),
 		.vsync(vga_vs_osd),
@@ -1562,6 +1563,7 @@ emu emu
 	.HDMI_FREEZE(freeze),
 
 	.CLK_VIDEO(clk_vid),
+	.CLK_CHROMA(clk_chroma),
 	.CE_PIXEL(ce_pix),
 	.VGA_SL(scanlines),
 	.VIDEO_ARX(ARX),

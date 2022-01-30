@@ -7,7 +7,13 @@ V	0.877(R' - Y) = 898 (X 1024)
 
  C = U * Sin(wt) + V * Cos(wt) ( sin / cos generated in 2 LUTs)
 
-Chroma out requires a 1uF capacitor to lower the DC offset back to 0.
+ A third LUT was created for the colorburst carrier wave or sin(wt ~ 180 degrees)
+
+YPbPr is requred in the MiSTer ini file
+A AC coupling 0.1uF capacitor was used on the Chroma output, but may not be required.
+
+This is only a concept right now and there is still a lot of work to see how well this 
+can be applied to more applications or even how the existing issues can be cleaned up.
 
 */
 
@@ -15,7 +21,7 @@ Chroma out requires a 1uF capacitor to lower the DC offset back to 0.
 module vga_out
 (
 	input         clk,
-	input         clk50,		// Used to generate NTSC signal
+	input         clk_50,		// Used to generate NTSC signal
 	input         ypbpr_en,
 
 	input         hsync,
@@ -49,33 +55,43 @@ reg [23:0] rgb;
 reg hsync2, vsync2, csync2;
 reg hsync1, vsync1, csync1;
 
-reg[8:0]  cburst_phase;    // colorburst counter 
-reg signed [7:0]  vref = 'sd100;		// Voltage reference point (Used for Chroma)
-reg[3:0]  chroma_LUT_count;     // colorburst counter
+reg [8:0]  cburst_phase;    // colorburst counter 
+reg [7:0]  vref = 'd128;		// Voltage reference point (Used for Chroma)
+reg [4:0]  chroma_LUT_count = 'd0;     // colorburst counter
 
-wire signed [9:0] chroma_sin_LUT[14] = '{
-	10'b0000000100, 10'b0001110011, 10'b0011001011, 10'b0011111011, 
-	10'b0011111000, 10'b0011000101, 10'b0001101010, 10'b1111111011, 
-	10'b1110001100, 10'b1100110100, 10'b1100000101, 10'b1100001000, 
-	10'b1100111100, 10'b1110010111
+/*
+THe following LUT tables were calculated in Google Sheets with the following
+Sampling rate = 14 * 3.579545 or 50,113,560 Hz
+w = =2 * PI * (3.579545*10^6)
+t = 1/sampling rate
+
+Where: 
+chroma_sin_LUT = sin(wt)
+chroma_cos_LUT = cos(wt)
+colorburst_LUT = sin(wt + 160.2)    or roughly 180 degrees out of phase from sin(wt)
+
+*/
+
+
+wire signed [10:0] chroma_sin_LUT[14] = '{
+	11'b00000000000, 11'b00001101111, 11'b00011001000, 11'b00011111010,	11'b00011111010,
+	11'b00011001000, 11'b00001101111, 11'b00000000000, 11'b11110010001, 11'b11100111000,
+	11'b11100000110, 11'b11100000110, 11'b11100111000, 11'b11110010001
 };
 
-wire signed [9:0] chroma_cos_LUT[14] = '{
-	10'b0100000000, 10'b0011100101, 10'b0010011100, 10'b0000110101, 
-	10'b1111000010, 10'b1101011101, 10'b1100010111, 10'b1100000001, 
-	10'b1100011100, 10'b1101100101, 10'b1111001101, 10'b0000111111, 
-	10'b0010100101, 10'b0011101010
+
+wire signed [10:0] chroma_cos_LUT[14] = '{
+	11'b00100000000, 11'b00011100111, 11'b00010100000, 11'b00000111001, 11'b11111000111,
+	11'b11101100000, 11'b11100011001, 11'b11100000000, 11'b11100011001, 11'b11101100000,
+	11'b11111000111, 11'b00000111001, 11'b00010100000, 11'b00011100111
+};
+wire signed [10:0] colorburst_LUT[14] = '{
+	11'b00000000101, 11'b11110010110, 11'b11100111011, 11'b11100001000, 11'b11100000101,
+	11'b11100110101, 11'b11110001100, 11'b11111111011, 11'b00001101010, 11'b00011000101,
+	11'b00011111000, 11'b00011111011, 11'b00011001011, 11'b00001110100
 };
 
-wire signed [9:0] colorburst_LUT[14] = '{
-	10'b1100110001, 10'b1100000100, 10'b1100001001, 10'b1101000000, 
-	10'b1110011101, 10'b0000001101, 10'b0001111011, 10'b0011010000, 
-	10'b0011111100, 10'b0011110110, 10'b0010111111, 10'b0001100010, 
-	10'b1111110001, 10'b1110000011
-};
-
-
-always_ff @(posedge clk50) 
+always_ff @(posedge clk_50) 
 begin
 
 
@@ -92,33 +108,62 @@ begin
 	if (hsync) 
 		begin
 			cburst_phase <= 'd0; 	// Reset Colorburst counter during sync
-			chroma_LUT_count <= 'd0; 	// Reset LUT counter during sync
+			//chroma_LUT_count <= 'd0; 	// Reset LUT counter during sync
 			ccos <= 20'b0;	// Reset cos LUT value during sync
 			csin <= 20'b0;  // Reset sin LUT value during sync
-			C <= vref;
+			c <= vref;
 		end
 	else 
 		begin // Generate Colorburst for 9 cycles 
-			if (cburst_phase >= 'd45 && cburst_phase <= 'd175) // Start the color burst signal at 45 samples or 0.9 us
+			if (cburst_phase >= 'd20 && cburst_phase <= 'd155) // Start the color burst signal at 45 samples or 0.9 us
 				begin	// COLORBURST SIGNAL GENERATION (9 CYCLES ONLY or between count 45 - 175)
 					csin <= $signed({colorburst_LUT[chroma_LUT_count],5'd0});
 					ccos <= 29'b0;
+
+					// Turn u * sin(wt) and v * cos(wt) into signed numbers
+					u_sin <= $signed(csin[19:0]);
+					v_cos <= $signed(ccos[19:0]);
+
+					// Division to scale down the results to fit 8 bit.. signed numbers had to be handled a bit different. 
+					// There are probably better methods here. but the standard >>> didnt work for multiple shifts.
+					if (u_sin >= 0)
+						begin
+							u_sin2 <= u_sin[19:8]+ u_sin[19:9] ;      
+						end
+					else
+						begin
+							u_sin2 <= $signed(~(~u_sin[19:8])) + $signed(~(~u_sin[19:9]));
+						end
+					v_cos2 <= (v_cos>>>8);
 				end
-			else if (cburst_phase > 'd175) // Modulate U, V for chroma using a LUT for sin / cos
+			else if (cburst_phase > 'd155) // Modulate U, V for chroma using a LUT for sin / cos
 				begin  
 
 					csin <= $signed(u>>>10) * $signed(chroma_sin_LUT[chroma_LUT_count]);
 					ccos <= $signed(v>>>10) * $signed(chroma_cos_LUT[chroma_LUT_count]);
 
+					// Turn u * sin(wt) and v * cos(wt) into signed numbers
+					u_sin <= $signed(csin[19:0]);
+					v_cos <= $signed(ccos[19:0]);
+
+					// Divide U*sin(wt) and V*cos(wt) to fit results to 8 bit
+					if (u_sin >= 0)
+						begin
+							u_sin2 <= u_sin[19:8]+ u_sin[19:9] + u_sin[19:11];       
+						end
+					else
+						begin
+							u_sin2 <= $signed(~(~u_sin[19:8])) + $signed(~(~u_sin[19:9]))+ $signed(~(~u_sin[19:11]));
+						end
+					if (v_cos >=0)
+						begin
+							v_cos2 <= v_cos[19:8] + v_cos[19:9]+ v_cos[19:11];
+						end
+					else
+						begin
+							v_cos2 <= $signed(~(~v_cos[19:8])) + $signed(~(~v_cos[19:9])) + $signed(~(~v_cos[19:11]));
+						end
 					end
-
-			// Turn u * sin(wt) and v * cos(wt) into signed numbers
-			u_sin <= $signed(csin[19:0]);
-			v_cos <= $signed(ccos[19:0]);
-
-			// Divide to to the correct amplitudes needed for chroma out.
-			u_sin2 <= (u_sin>>>8);
-			v_cos2 <= (v_cos>>>8);
 
 			// Stop the colorburst timer as its only needed for the initial pulse
 			if (cburst_phase <= 'd300)
@@ -126,17 +171,17 @@ begin
 					cburst_phase <= cburst_phase + 8'd1;
 				end
 			// Chroma sin / cos LUT counter (0-14 then reset back to 0)
-			chroma_LUT_count <=chroma_LUT_count + 4'd1; 
-			if (chroma_LUT_count == 4'd13)
-				begin
-					chroma_LUT_count <= 4'd0;
-				end
+
 
 			// Generate chorma
-			c <= vref + u_sin2 + v_cos2;
+			c <= $signed(vref) + u_sin2 + v_cos2;
 
 		end
-
+		chroma_LUT_count <=chroma_LUT_count + 5'd1; 
+		if (chroma_LUT_count == 5'd13)
+			begin
+				chroma_LUT_count <= 5'd0;
+			end
 	// Set Chroma output
 	C <= c[7:0];
 end
@@ -144,6 +189,7 @@ end
 
 always @(posedge clk) begin
 
+	// YUV standard for luma added
 	y_r <= {red, 8'd0} + {red, 5'd0}+ {red, 4'd0} + {red, 1'd0} ;
     y_g <= {green, 9'd0} + {green, 6'd0} + {green, 4'd0} + {green, 3'd0} + green;
 	y_b <= {blue, 6'd0} + {blue, 5'd0} + {blue, 4'd0} + {blue, 2'd0} + blue;

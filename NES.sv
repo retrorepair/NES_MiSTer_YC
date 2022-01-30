@@ -18,6 +18,9 @@ module emu
 	//Base video clock. Usually equals to CLK_SYS.
 	output        CLK_VIDEO,
 
+	// Added for CHROMA Clock carrier
+	output	      CLK_CHROMA,
+
 	//Multiple resolutions are supported using different CE_PIXEL rates.
 	//Must be based on CLK_VIDEO
 	output        CE_PIXEL,
@@ -448,6 +451,7 @@ pll pll
 	.outclk_0(clk85),
 	.outclk_1(CLK_VIDEO),
 	.outclk_2(clk),
+	.outclk_3(CLK_CHROMA),
 	.reconfig_to_pll(reconfig_to_pll),
 	.reconfig_from_pll(reconfig_from_pll),
 	.locked(clock_locked)
