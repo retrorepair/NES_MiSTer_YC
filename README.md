@@ -3,7 +3,7 @@ This is an attempt to add chroma out to the MiSTerFPGA using the (Red) output fo
 
 ### Quick Note:
 
-**YPbPr is requred in the MiSTer ini file, as well as using green for LUMA (Y) and red for CHROMA (C). A VGA to component is what I am currently using.**
+**YPbPr=1 is requred in the MiSTer ini file, as well as using green for LUMA (Y) and red for CHROMA (C). A VGA to component is what I am currently using. Just another note, YPbPr/Component will not work as I am using that option to test YC**
 
 The YUV standard was used with the following assumptions
 
