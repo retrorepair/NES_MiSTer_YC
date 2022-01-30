@@ -1,7 +1,8 @@
 # MiSTerFPGA - NTSC Encoder - S-Video / Composite Output 
 This is an attempt to add chroma out to the MiSTerFPGA using the (Red) output for the Chroma output and (Green) for the Luma
 
-## Quick Note: 
+## Quick Note:
+
 **YPbPr is requred in the MiSTer ini file, as well as using green for LUMA (Y) and red for CHROMA (C). A VGA to component is what I am currently using.
 
 The YUV standard was used with the following assumptions
