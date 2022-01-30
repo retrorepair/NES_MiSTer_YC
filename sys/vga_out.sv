@@ -7,9 +7,8 @@ V	0.877(R' - Y) = 898 (X 1024)
 
  C = U * Sin(wt) + V * Cos(wt) ( sin / cos generated in 2 LUTs)
 
- A third LUT was created for the colorburst carrier wave or sin(wt ~ 180 degrees)
-
 YPbPr is requred in the MiSTer ini file
+
 A AC coupling 0.1uF capacitor was used on the Chroma output, but may not be required.
 
 This is only a concept right now and there is still a lot of work to see how well this 
@@ -68,7 +67,6 @@ t = 1/sampling rate
 Where: 
 chroma_sin_LUT = sin(wt)
 chroma_cos_LUT = cos(wt)
-colorburst_LUT = sin(wt + 160.2)    or roughly 180 degrees out of phase from sin(wt)
 
 */
 
@@ -84,11 +82,6 @@ wire signed [10:0] chroma_cos_LUT[14] = '{
 	11'b00100000000, 11'b00011100111, 11'b00010100000, 11'b00000111001, 11'b11111000111,
 	11'b11101100000, 11'b11100011001, 11'b11100000000, 11'b11100011001, 11'b11101100000,
 	11'b11111000111, 11'b00000111001, 11'b00010100000, 11'b00011100111
-};
-wire signed [10:0] colorburst_LUT[14] = '{
-	11'b00000000101, 11'b11110010110, 11'b11100111011, 11'b11100001000, 11'b11100000101,
-	11'b11100110101, 11'b11110001100, 11'b11111111011, 11'b00001101010, 11'b00011000101,
-	11'b00011111000, 11'b00011111011, 11'b00011001011, 11'b00001110100
 };
 
 always_ff @(posedge clk_50) 
@@ -117,7 +110,8 @@ begin
 		begin // Generate Colorburst for 9 cycles 
 			if (cburst_phase >= 'd20 && cburst_phase <= 'd155) // Start the color burst signal at 45 samples or 0.9 us
 				begin	// COLORBURST SIGNAL GENERATION (9 CYCLES ONLY or between count 45 - 175)
-					csin <= $signed({colorburst_LUT[chroma_LUT_count],5'd0});
+						// Set 180 degrees out of phase of sin(wt)
+					csin <= -$signed({chroma_sin_LUT[chroma_LUT_count],5'd0});
 					ccos <= 29'b0;
 
 					// Turn u * sin(wt) and v * cos(wt) into signed numbers
