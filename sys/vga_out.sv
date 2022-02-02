@@ -8,7 +8,6 @@ V	0.877(R' - Y) = 898 (X 1024)
  C = U * Sin(wt) + V * Cos(wt) ( sin / cos generated in 2 LUTs)
 
 YPbPr is requred in the MiSTer ini file
-
 A AC coupling 0.1uF capacitor was used on the Chroma output, but may not be required.
 
 This is only a concept right now and there is still a lot of work to see how well this 
